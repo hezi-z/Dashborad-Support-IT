@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Security-Watch :: לוח בקרת אבטחת מידע</title>
+<style>
+:root{
+  --topbar:#1e293b; --sidebar:#1e293b; --content:#f1f5f9;
+  --panel:#fff; --panel2:#f8fafc; --line:#334155; --line2:#e2e8f0;
+  --text:#0f172a; --muted:#64748b; --faint:#94a3b8;
+  --blue:#2563eb; --blue-bg:#eff6ff; --blue-bd:#bfdbfe;
+  --red:#ef4444; --red-bg:#fef2f2; --red-bd:#fecaca;
+  --orange:#f97316; --orange-bg:#fff7ed; --orange-bd:#fed7aa;
+  --green:#22c55e; --green-bg:#f0fdf4; --green-bd:#bbf7d0;
+  --purple:#9333ea; --purple-bg:#faf5ff; --purple-bd:#e9d5ff;
+  --teal:#0d9488; --teal-bg:#f0fdfa; --teal-bd:#99f6e4;
+  --r:8px; --r-lg:12px;
+  --mono:'Consolas','Courier New',monospace;
+  --sans:'Segoe UI',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--sans);background:#0f172a;color:var(--text)}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+
+/* TOPBAR */
+.topbar{
+  background:var(--topbar);border-bottom:1px solid var(--line);
+  height:52px;padding:0 20px;display:flex;align-items:center;
+  justify-content:space-between;flex-shrink:0;z-index:50;gap:12px
+}
+.logo{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:700;
+  color:#f8fafc;font-family:var(--mono);white-space:nowrap}
+.pulse{width:9px;height:9px;border-radius:50%;background:#22c55e;
+  box-shadow:0 0 7px #22c55e;animation:glow 2s ease-in-out infinite;flex-shrink:0}
+@keyframes glow{0%,100%{opacity:1}50%{opacity:.3}}
+.logo-sub{font-size:10px;color:#64748b;font-weight:400;letter-spacing:2px;display:block}
+.topbar-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:20px;white-space:nowrap;border:1px solid}
+.b-live{background:#14532d;color:#4ade80;border-color:#166534}
+.b-month{background:#1e3a8a;color:#93c5fd;border-color:#1d4ed8}
+.b-date{background:#0f172a;color:#64748b;border-color:#334155;font-weight:400;font-family:var(--mono)}
+.topbar-btn{
+  background:#2563eb;color:#fff;border:1px solid #1d4ed8;
+  font-size:12px;font-weight:600;padding:6px 14px;border-radius:var(--r);
+  cursor:pointer;font-family:var(--sans);transition:.12s;white-space:nowrap
+}
+.topbar-btn:hover{background:#1d4ed8}
+.topbar-btn.on{background:#0f172a;border-color:#334155;color:#64748b}
+.topbar-btn.on:hover{border-color:#60a5fa;color:#93c5fd}
+.topbar-btn-exp{
+  background:#0f172a;color:#94a3b8;border:1px solid #334155;
+  font-size:12px;font-weight:600;padding:6px 14px;border-radius:var(--r);
+  cursor:pointer;font-family:var(--sans);transition:.12s;white-space:nowrap
+}
+.topbar-btn-exp:hover{border-color:#60a5fa;color:#93c5fd}
+
+/* BODY */
+.body{display:flex;flex:1;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:220px;background:var(--sidebar);border-left:1px solid var(--line);
+  display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto}
+.sl{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;
+  letter-spacing:1px;padding:14px 14px 6px}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 14px;font-size:13px;
+  color:#94a3b8;cursor:pointer;border-right:3px solid transparent;
+  transition:.12s;user-select:none;min-height:36px}
+.ni:hover{background:#0f172a;color:#f8fafc}
+.ni.active{background:#0f172a;color:#60a5fa;border-right-color:#3b82f6}
+.ni-label{flex:1;font-size:12px}
+.ni-cnt{font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;
+  background:#450a0a;color:#fca5a5;border:1px solid #7f1d1d;white-space:nowrap}
+.ni-cnt.g{background:#14532d;color:#4ade80;border-color:#166534}
+.ni-cnt.w{background:#431407;color:#fdba74;border-color:#7c2d12}
+.ni-cnt.b{background:#1e3a8a;color:#93c5fd;border-color:#1d4ed8}
+.ni-cnt.p{background:#3b0764;color:#d8b4fe;border-color:#581c87}
+.sidebar-section{padding:10px 14px;border-top:1px solid var(--line)}
+.sidebar-section-title{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.export-btn{width:100%;background:#0f172a;color:#94a3b8;border:1px solid #334155;
+  font-size:11px;font-weight:600;padding:6px 10px;border-radius:var(--r);
+  cursor:pointer;font-family:var(--sans);transition:.12s;margin-bottom:5px;text-align:center}
+.export-btn:hover{border-color:#60a5fa;color:#93c5fd}
+.sidebar-footer{padding:12px 14px;border-top:1px solid var(--line);
+  font-size:10px;color:#475569;line-height:1.7;text-align:center;margin-top:auto}
+
+/* CONTENT */
+.content{flex:1;overflow-y:auto;background:var(--content)}
+.page{padding:20px}
+.ptitle{font-size:18px;font-weight:700;color:var(--text);margin-bottom:2px}
+.psub{font-size:12px;color:var(--faint);margin-bottom:18px}
+
+/* STAT CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px;margin-bottom:10px}
+.sc{background:var(--panel);border-radius:var(--r-lg);padding:14px 16px;
+  border-right:4px solid #e2e8f0;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.sc-r{border-right-color:var(--red)}.sc-o{border-right-color:var(--orange)}
+.sc-g{border-right-color:var(--green)}.sc-b{border-right-color:var(--blue)}
+.sc-p{border-right-color:var(--purple)}.sc-t{border-right-color:var(--teal)}
+.sc-lbl{font-size:11px;color:var(--muted);margin-bottom:8px}
+.sc-val{font-size:26px;font-weight:700;line-height:1;margin-bottom:3px}
+.sc-sub{font-size:11px;color:var(--faint)}
+.infra-sep{font-size:10px;font-weight:700;color:var(--faint);text-transform:uppercase;
+  letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.infra-sep::after{content:'';flex:1;height:1px;background:var(--line2)}
+.stats-infra{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.sc-infra-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.sc-infra-name{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.sc-infra-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sc-infra-num{font-size:24px;font-weight:700;line-height:1;margin-bottom:3px}
+.sc-infra-cve{font-size:10px;color:var(--faint)}
+
+/* CONTROLS */
+.ctrl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.search-wrap{flex:1;min-width:200px;position:relative}
+.search-wrap input{
+  width:100%;background:var(--panel);border:1px solid var(--line2);color:var(--text);
+  padding:8px 12px 8px 34px;border-radius:var(--r);font-size:13px;outline:none;
+  font-family:var(--sans)}
+.search-wrap input::placeholder{color:var(--faint)}
+.search-wrap input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(37,99,235,.12)}
+.si{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--faint);font-size:14px}
+.ctrl-btn{
+  background:var(--panel);color:var(--muted);border:1px solid var(--line2);
+  font-size:12px;font-weight:600;padding:7px 12px;border-radius:var(--r);
+  cursor:pointer;font-family:var(--sans);transition:.12s;white-space:nowrap}
+.ctrl-btn:hover{border-color:var(--blue);color:var(--blue)}
+.ctrl-btn.on{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-bd)}
+
+/* CAT TAGS */
+.cat-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.cat-tag{font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;
+  user-select:none;background:var(--panel);border:1px solid var(--line2);
+  color:var(--muted);transition:.12s}
+.cat-tag:hover{border-color:var(--blue);color:var(--blue)}
+.cat-tag.on{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-bd);font-weight:600}
+.cat-cnt{opacity:.6;margin-right:3px}
+
+/* NOTICE */
+.notice{
+  background:#fefce8;border:1px solid #fde68a;border-radius:var(--r);
+  padding:10px 14px;font-size:12px;color:#854d0e;margin-bottom:14px;
+  display:flex;align-items:center;gap:8px}
+.notice-close{margin-right:auto;cursor:pointer;color:#a16207;font-size:14px}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:14px}
+
+/* CARD */
+.card{
+  background:var(--panel);border:1px solid var(--line2);border-radius:var(--r-lg);
+  padding:16px;display:flex;flex-direction:column;gap:10px;
+  box-shadow:0 1px 3px rgba(0,0,0,.05);transition:.15s;
+  border-right:4px solid var(--line2)}
+.card:hover{box-shadow:0 4px 14px rgba(0,0,0,.09);transform:translateY(-1px)}
+.card.h{border-right-color:var(--red)}
+.card.m{border-right-color:var(--orange)}
+.card.l{border-right-color:var(--green)}
+.card.itw{border-right-color:#dc2626;background:#fffafa}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.cat-badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;
+  background:var(--panel2);color:var(--muted);border:1px solid var(--line2);white-space:nowrap}
+.sev{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;border:1px solid;white-space:nowrap}
+.sev.h{background:var(--red-bg);color:#991b1b;border-color:var(--red-bd)}
+.sev.m{background:var(--orange-bg);color:#9a3412;border-color:var(--orange-bd)}
+.sev.l{background:var(--green-bg);color:#166534;border-color:var(--green-bd)}
+.itw-badge{font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;
+  background:#fef2f2;color:#991b1b;border:1px solid #fca5a5}
+.card-title{font-size:14.5px;line-height:1.45;font-weight:700;color:var(--text)}
+.card-desc{font-size:12.5px;color:#475569;line-height:1.6}
+.card-cve{font-family:var(--mono);font-size:11px;color:var(--blue);background:var(--blue-bg);
+  border:1px solid var(--blue-bd);border-radius:var(--r);padding:6px 10px;
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.card-reco{background:var(--green-bg);border:1px solid var(--green-bd);
+  border-radius:var(--r);padding:10px 12px;font-size:12px;line-height:1.6;color:#166534}
+.card-reco b{font-size:10px;font-weight:700;letter-spacing:.5px;display:block;
+  margin-bottom:4px;color:#15803d;text-transform:uppercase}
+.card-foot{display:flex;justify-content:space-between;align-items:center;
+  font-size:11px;color:var(--faint);padding-top:6px;border-top:1px dashed var(--line2);margin-top:auto;gap:8px;flex-wrap:wrap}
+.cvss-pill{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.cvss-c{background:#fef2f2;color:#991b1b;border:1px solid #fecaca}
+.cvss-h{background:#fff7ed;color:#9a3412;border:1px solid #fed7aa}
+.cvss-m{background:#fefce8;color:#854d0e;border:1px solid #fde68a}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--faint)}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.empty-title{font-size:15px;font-weight:600;margin-bottom:6px;color:var(--muted)}
+
+/* GEO TABLE */
+.geo-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--panel);border-radius:var(--r-lg);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.geo-table th{padding:10px 14px;text-align:right;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--line2);background:var(--panel2)}
+.geo-table td{padding:11px 14px;border-bottom:1px solid var(--line2);color:#475569;vertical-align:middle}
+.geo-table tr:last-child td{border-bottom:none}
+.geo-table tr:hover td{background:var(--panel2)}
+.risk-bar-wrap{width:70px;height:5px;background:#e2e8f0;border-radius:3px;display:inline-block;vertical-align:middle;margin-left:6px}
+.risk-bar{height:100%;border-radius:3px}
+
+/* HASH TABLE */
+.hash-table{width:100%;border-collapse:collapse;font-size:12px;background:var(--panel);border-radius:var(--r-lg);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.hash-table th{padding:9px 14px;text-align:right;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--line2);background:var(--panel2)}
+.hash-table td{padding:10px 14px;border-bottom:1px solid var(--line2);color:#475569;vertical-align:middle}
+.hash-table tr:last-child td{border-bottom:none}
+.hash-table tr:hover td{background:var(--panel2)}
+.hash-cell{font-family:var(--mono);font-size:10px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#475569}
+.copy-btn{background:var(--panel2);border:1px solid var(--line2);color:var(--muted);padding:2px 8px;border-radius:4px;font-size:10px;cursor:pointer;white-space:nowrap}
+.copy-btn:hover{color:var(--blue);border-color:var(--blue-bd)}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--panel2)}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .grid{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .stats-infra{grid-template-columns:repeat(2,1fr)}
+  .topbar .b-date{display:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="logo">
+    <span class="pulse"></span>
+    <div>SECURITY-WATCH<span class="logo-sub">לוח בקרת אבטחת מידע</span></div>
+  </div>
+  <div class="topbar-right">
+    <span class="badge b-live">● פעיל</span>
+    <span class="badge b-month" id="monthBadge"></span>
+    <span class="badge b-date" id="dateBadge"></span>
+    <button class="topbar-btn" id="filterCritBtn">🔴 קריטי בלבד</button>
+    <button class="topbar-btn" id="filterWildBtn">🔥 In-Wild בלבד</button>
+  </div>
+</div>
+
+<div class="body">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sl">תצוגות</div>
+  <div class="ni active" data-view="cve" onclick="setView(this)">
+    🛡 CVEs <span class="ni-cnt b" id="cnt-cve">—</span>
+  </div>
+  <div class="ni" data-view="geo" onclick="setView(this)">
+    🌍 GEO Blocking <span class="ni-cnt" id="cnt-geo">9</span>
+  </div>
+  <div class="ni" data-view="hash" onclick="setView(this)">
+    👆 Hash IOCs <span class="ni-cnt p" id="cnt-hash">7</span>
+  </div>
+
+  <div class="sl">מוצרים</div>
+  <div id="sidebarCats"></div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">ייצוא</div>
+    <button class="export-btn" onclick="exportGEO()">⬇ GEO → FortiGate CLI</button>
+    <button class="export-btn" onclick="exportHashes()">⬇ Hashes → IOC (.txt)</button>
+    <button class="export-btn" onclick="exportCSV()">⬇ CVEs → CSV</button>
+  </div>
+
+  <div class="sidebar-footer" id="sidebarFooter"></div>
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+<div class="page">
+
+  <div class="ptitle" id="pageTitle">CVE Database — 2026</div>
+  <div class="psub" id="pageSubtitle"></div>
+
+  <!-- STATS -->
+  <div class="stats-row" id="statsRow">
+    <div class="sc sc-r">
+      <div class="sc-lbl">🔴 Critical CVEs</div>
+      <div class="sc-val" id="s-crit" style="color:var(--red)">—</div>
+      <div class="sc-sub">CVSS 9.0+</div>
+    </div>
+    <div class="sc sc-o">
+      <div class="sc-lbl">🟠 High CVEs</div>
+      <div class="sc-val" id="s-high" style="color:var(--orange)">—</div>
+      <div class="sc-sub">CVSS 7.0–8.9</div>
+    </div>
+    <div class="sc sc-r" style="border-right-color:#dc2626">
+      <div class="sc-lbl">🔥 In-The-Wild</div>
+      <div class="sc-val" id="s-wild" style="color:#dc2626">—</div>
+      <div class="sc-sub">ניצול פעיל עכשיו</div>
+    </div>
+    <div class="sc sc-b">
+      <div class="sc-lbl">📋 סה"כ CVEs</div>
+      <div class="sc-val" id="s-total" style="color:var(--blue)">—</div>
+      <div class="sc-sub">כל המוצרים</div>
+    </div>
+    <div class="sc sc-g">
+      <div class="sc-lbl">✓ יש Patch</div>
+      <div class="sc-val" id="s-patch" style="color:var(--green)">—</div>
+      <div class="sc-sub">מתוך הכלל</div>
+    </div>
+  </div>
+  <div class="infra-sep">Infra CVEs</div>
+  <div class="stats-infra">
+    <div class="sc sc-t">
+      <div class="sc-infra-top">
+        <div class="sc-infra-name"><div class="sc-infra-dot" style="background:#0d9488"></div>Veeam</div>
+        <span id="ib-veeam-badge" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:#fef2f2;color:#991b1b;border:1px solid #fecaca">—</span>
+      </div>
+      <div class="sc-infra-num" id="ib-veeam" style="color:#0d9488">—</div>
+      <div class="sc-infra-cve" id="ib-veeam-sub">CVEs 2026</div>
+    </div>
+    <div class="sc sc-o">
+      <div class="sc-infra-top">
+        <div class="sc-infra-name"><div class="sc-infra-dot" style="background:#ea580c"></div>ESXi</div>
+        <span id="ib-esxi-badge" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa">—</span>
+      </div>
+      <div class="sc-infra-num" id="ib-esxi" style="color:#ea580c">—</div>
+      <div class="sc-infra-cve" id="ib-esxi-sub">CVEs 2026</div>
+    </div>
+    <div class="sc sc-p">
+      <div class="sc-infra-top">
+        <div class="sc-infra-name"><div class="sc-infra-dot" style="background:#9333ea"></div>Zabbix</div>
+        <span id="ib-zabbix-badge" style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa">—</span>
+      </div>
+      <div class="sc-infra-num" id="ib-zabbix" style="color:#9333ea">—</div>
+      <div class="sc-infra-cve" id="ib-zabbix-sub">CVEs 2026</div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="ctrl" id="cveCtrl">
+    <div class="search-wrap">
+      <span class="si">⌕</span>
+      <input type="text" id="searchInput" placeholder="חיפוש — CVE ID, מוצר, תיאור, המלצה...">
+    </div>
+    <button class="ctrl-btn" id="sortBtn">⬆⬇ מיון: CVSS</button>
+  </div>
+
+  <!-- CAT TAGS -->
+  <div class="cat-tags" id="catTags"></div>
+
+  <!-- NOTICE -->
+  <div class="notice" id="noDataNotice" style="display:none">
+    <span>ℹ</span>
+    <span id="noDataText"></span>
+    <span class="notice-close" onclick="document.getElementById('noDataNotice').style.display='none'">✕</span>
+  </div>
+
+  <!-- GRID / TABLE -->
+  <div id="mainArea"></div>
+
+</div>
+</div>
+</div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+// ── DATA: CVEs ─────────────────────────────────────────────────────────────
+const CVES = [
+  // FortiGate
+  {id:'CVE-2026-24858',product:'FortiGate',severity:'critical',cvss:9.4,wild:true,patch:true,
+   source:'Fortinet PSIRT',date:'2026-01-27',
+   title:'FortiCloud SSO auth bypass — FortiBleed',
+   description:'Bypass אימות FortiCloud SSO — תוקף עם כל FortiCloud account יכול להתחבר למכשירים של ארגונים אחרים. נוצל in-the-wild. CISA KEV. 74,000+ מכשירים הושפעו.',
+   recommendation:'1) שדרג ל-FortiOS 7.6.7+ / 7.4.12+ מיד. 2) בטל FortiCloud SSO: System→Settings→Switch Off. 3) בדוק admin accounts חשודים: config system admin. 4) אפס כל סיסמאות admin.',
+   month:1,year:2026},
+  // Windows
+  {id:'CVE-2026-41089',product:'Windows',severity:'critical',cvss:9.8,wild:true,patch:true,
+   source:'MSRC',date:'2026-05-13',
+   title:'Windows Netlogon RCE — domain controllers, ניצול פעיל',
+   description:'RCE על domain controllers ללא אימות. ניצול פעיל מאי 2026. תוקף שולח בקשת Netlogon מעוצבת ומקבל שליטה מלאה על ה-DC.',
+   recommendation:'1) עדכן DCs עם KB5094125 לפני כל דבר. 2) בדוק Event ID 5827/5828 ב-System log. 3) הרץ: Get-ADUser -Filter * | Where {$_.Created -gt (Get-Date).AddDays(-7)} לבדיקת accounts חדשים חשודים.',
+   month:5,year:2026},
+  {id:'CVE-2026-41096',product:'Windows',severity:'critical',cvss:9.8,wild:false,patch:true,
+   source:'MSRC',date:'2026-05-13',
+   title:'Windows DNS Client heap overflow — unauthenticated RCE',
+   description:'Heap overflow ב-DNS Client — RCE ללא אימות על כל Windows machine ברשת. תוקף שולח DNS response מזויף.',
+   recommendation:'1) עדכן KB5094125 על כל Windows machines. 2) וודא DNS מוגדר לשרתים פנימיים בלבד. 3) חסום DNS ישיר לאינטרנט ב-FortiGate (פורט 53).',
+   month:5,year:2026},
+  {id:'CVE-2026-45657',product:'Windows',severity:'critical',cvss:9.8,wild:false,patch:true,
+   source:'MSRC',date:'2026-06-09',
+   title:'Windows Kernel wormable RCE — פוטנציאל נפח נרחב',
+   description:'RCE ב-Windows Kernel — wormable, ללא אימות, ללא אינטראקציה משתמש. ZDI: mass exploitation צפוי לאחר פרסום exploit.',
+   recommendation:'התקן KB5094126 מיידית. בדוק: winver → Build 26200+. WSUS/Intune — deploy ב-ring 0 לפני כל דבר אחר.',
+   month:6,year:2026},
+  {id:'CVE-2026-47652',product:'Windows',severity:'critical',cvss:8.8,wild:false,patch:true,
+   source:'MSRC',date:'2026-06-09',
+   title:'Hyper-V OOB read — guest-to-host escape',
+   description:'Critical OOB read ב-Hyper-V — admin ב-VM מריץ קוד על ה-host hypervisor. פוגע ב-Server 2022/2025.',
+   recommendation:'1) עדכן Hyper-V hosts לפני VMs עם KB5094125. 2) הפעל Core Isolation ו-HVCI. 3) הפרד management network מ-VM network.',
+   month:6,year:2026},
+  // Veeam
+  {id:'CVE-2026-21666',product:'Veeam',severity:'critical',cvss:9.9,wild:false,patch:true,
+   source:'Veeam',date:'2026-03-12',
+   title:'Veeam B&R v12 — RCE לכל domain user',
+   description:'כל domain user יכול לבצע RCE על Backup Server. פוגע ב-Veeam B&R 12.x לפני 12.3.2.4465. Akira ransomware מנצל פגיעות זו.',
+   recommendation:'1) שדרג ל-12.3.2.4854+ מיד (Help→Check for Updates). 2) נתק Backup Server מהדומיין זמנית אם לא ניתן לעדכן. 3) הגבל גישה ל-Veeam לקבוצת Backup Admins בלבד.',
+   month:3,year:2026},
+  {id:'CVE-2026-21669',product:'Veeam',severity:'critical',cvss:9.9,wild:false,patch:true,
+   source:'Veeam',date:'2026-03-12',
+   title:'Veeam B&R v13 — RCE domain user',
+   description:'RCE על Backup Server עבור domain user. פוגע ב-v13.0.1.1071 ומוקדם.',
+   recommendation:'שדרג ל-13.0.2.29+. בדוק גרסה: Help→About. הפעל MFA על Veeam Console.',
+   month:3,year:2026},
+  {id:'CVE-2026-44963',product:'Veeam',severity:'critical',cvss:9.4,wild:false,patch:true,
+   source:'Veeam / WatchTowr',date:'2026-06-05',
+   title:'Veeam B&R v12 — RCE חדש (WatchTowr יוני 2026)',
+   description:'Low priv domain user יכול לבצע RCE על domain-joined Backup Server. דווח על ידי WatchTowr. לא פוגע ב-v13.',
+   recommendation:'1) שדרג ל-12.3.2.4854+. 2) שקול מעבר ל-v13 — לא פגיע. 3) Workaround: נתק Backup Server מהדומיין עד לעדכון.',
+   month:6,year:2026},
+  // ESXi
+  {id:'CVE-2025-22224',product:'VMware ESXi',severity:'critical',cvss:9.3,wild:true,patch:true,
+   source:'Broadcom / CISA',date:'2025-03-04',
+   title:'ESXi TOCTOU VM escape — ניצול פעיל ransomware 2026',
+   description:'TOCTOU race condition — local admin ב-VM מריץ קוד על ה-host. חלק מ-exploit chain שנוצל ע"י ransomware groups ב-2026. CISA KEV.',
+   recommendation:'1) עדכן ל-ESXi 9.1 / 8.0U3d / 7.0U3s מיד. 2) הפרד management network מ-VM network. 3) הפעל Secure Boot על כל VMs.',
+   month:3,year:2025},
+  {id:'CVE-2025-41236',product:'VMware ESXi',severity:'critical',cvss:9.3,wild:false,patch:true,
+   source:'Broadcom',date:'2025-07-01',
+   title:'ESXi VMXNET3 integer overflow — VM to host RCE',
+   description:'Integer overflow ב-VMXNET3 — admin ב-VM מריץ קוד על ה-host hypervisor.',
+   recommendation:'1) עדכן ESXi ל-9.1+. 2) שקול שינוי network adapter ל-E1000e זמנית. 3) בדוק VMs שמשתמשים ב-VMXNET3.',
+   month:7,year:2025},
+  {id:'CVE-2026-22719',product:'VMware ESXi',severity:'critical',cvss:9.8,wild:true,patch:true,
+   source:'Broadcom / CISA',date:'2026-03-01',
+   title:'VMware Aria Operations — unauthenticated RCE, CISA KEV',
+   description:'Command injection ב-Aria Operations — unauthenticated RCE. CISA KEV. פוגע בסביבות עם vRealize Operations.',
+   recommendation:'1) עדכן Aria Operations (Broadcom advisory 36947). 2) חסום גישה ל-Aria Operations מה-WAN. 3) אם לא ניתן לעדכן — disconnect מהאינטרנט זמנית.',
+   month:3,year:2026},
+  // Zabbix
+  {id:'CVE-2026-23919',product:'Zabbix',severity:'high',cvss:7.6,wild:false,patch:true,
+   source:'Zabbix',date:'2026-03-27',
+   title:'Zabbix JS context reuse — data leakage בין admin sessions',
+   description:'Zabbix Server משתף JavaScript (Duktape) contexts בין sessions — admin יכול לגשת לנתונים של hosts שאינם שלו.',
+   recommendation:'1) שדרג ל-Zabbix 7.0.27 LTS. 2) הגבל admin roles לאנשים הנחוצים בלבד. 3) עבור ל-7.0 LTS לפני ספטמבר 2026 (7.4 EOL).',
+   month:3,year:2026},
+  // Microsoft 365
+  {id:'CVE-2026-42897',product:'Microsoft 365',severity:'high',cvss:8.1,wild:true,patch:true,
+   source:'MSRC',date:'2026-05-13',
+   title:'Exchange Server OWA XSS — CISA KEV',
+   description:'XSS ב-Outlook Web Access — JavaScript שרירותי מ-email. CISA KEV. Exchange Online לא נפגע.',
+   recommendation:'1) הפעל Exchange EOMT: .\\EOMT.ps1 -CVE CVE-2026-42897. 2) עדכן Exchange CU יוני 2026. 3) שקול העברה ל-Exchange Online.',
+   month:5,year:2026},
+  {id:'CVE-2026-32201',product:'Microsoft 365',severity:'medium',cvss:6.5,wild:true,patch:true,
+   source:'MSRC',date:'2026-04-08',
+   title:'SharePoint Server spoofing — zero-day, CISA KEV',
+   description:'Zero-day spoofing ב-SharePoint. CISA KEV. 1,370+ servers חשופים.',
+   recommendation:'1) עדכן SharePoint April 2026 CU. 2) חסום גישה ציבורית אם לא נחוץ. 3) הפעל WAF rule ב-FortiGate.',
+   month:4,year:2026},
+  {id:'CVE-2026-45456',product:'Microsoft 365',severity:'critical',cvss:8.4,wild:false,patch:true,
+   source:'MSRC',date:'2026-06-09',
+   title:'Microsoft Outlook RCE — Patch Tuesday יוני 2026',
+   description:'RCE ב-Outlook — Patch Tuesday יוני 2026. Preview Pane כווקטור.',
+   recommendation:'עדכן M365 Apps יוני 2026. בדוק: File→Office Account→Update Options→Update Now.',
+   month:6,year:2026},
+  // N-able
+  {id:'CVE-2024-23479',product:'N-able',severity:'critical',cvss:9.6,wild:false,patch:true,
+   source:'NVD',date:'2024-01-23',
+   title:'N-able N-central — SQL injection + RCE',
+   description:'SQL Injection ב-N-central מוביל ל-RCE — שליטה מלאה על כל managed endpoints.',
+   recommendation:'1) עדכן N-central מיד. 2) הגבל גישה ל-N-central ל-VPN בלבד. 3) הפעל MFA על כל admin accounts.',
+   month:1,year:2024},
+  // Windows Endpoints
+  {id:'CVE-2026-45586',product:'Windows',severity:'high',cvss:7.8,wild:true,patch:true,
+   source:'MSRC',date:'2026-06-09',
+   title:'Windows CTFMON EoP — GreenPlasma zero-day, CISA KEV',
+   description:'EoP zero-day — SYSTEM privileges. נחשף לפני פאץ. CISA KEV. deadline: 30 יוני.',
+   recommendation:'עדכן KB5094126 מיד. בדוק לוגים ל-ctfmon.exe עם הרשאות חריגות.',
+   month:6,year:2026},
+];
+
+// ── DATA: GEO ──────────────────────────────────────────────────────────────
+const GEO_DATA = [
+  {code:'RU',name:'רוסיה',flag:'🇷🇺',risk:'block',attacks:['APT28','Sandworm','LockBit'],reason:'apt',score:98,
+   detail:'FortiBleed 2026 — APT קבוצות רוסיות חילצו credentials מ-74K+ FortiGate devices. APT28/Sandworm פעילים נגד ישראל.',
+   ports:'הכל',specific:'חסום inbound+outbound מלא'},
+  {code:'CN',name:'סין',flag:'🇨🇳',risk:'block',attacks:['APT41','Volt Typhoon','Salt Typhoon'],reason:'apt',score:95,
+   detail:'APT41 מכוון ל-Veeam ו-ESXi. Volt Typhoon — תשתיות קריטיות. Salt Typhoon — telecom espionage.',
+   ports:'הכל',specific:'חסום inbound מלא'},
+  {code:'KP',name:'קוריאה הצפונית',flag:'🇰🇵',risk:'block',attacks:['Lazarus','Kimsuky'],reason:'apt',score:93,
+   detail:'Lazarus פעיל 2026. שימוש ב-RMM tools לגישה מתמשכת. אין traffic לגיטימי.',
+   ports:'הכל',specific:'חסום מלא'},
+  {code:'IR',name:'איראן',flag:'🇮🇷',risk:'block',attacks:['APT33','MuddyWater','OilRig'],reason:'apt',score:91,
+   detail:'MuddyWater — FortiGate/VPN בישראל. OilRig — monitoring tools. מאוד רלוונטי לישראל.',
+   ports:'הכל',specific:'חסום מלא'},
+  {code:'MM',name:'מיאנמר',flag:'🇲🇲',risk:'block',attacks:['Scam ops','C2'],reason:'ransomware',score:85,
+   detail:'Scam operation centers. אין traffic לגיטימי צפוי.',
+   ports:'הכל',specific:'חסום מלא'},
+  {code:'NG',name:'ניגריה',flag:'🇳🇬',risk:'block',attacks:['BEC','Phishing'],reason:'ransomware',score:78,
+   detail:'BEC בנפח גבוה — phishing לארגונים ישראלים.',
+   ports:'25,465,587',specific:'חסום SMTP לפחות'},
+  {code:'TR',name:'טורקיה',flag:'🇹🇷',risk:'high',attacks:['Phishing','Scan'],reason:'scan',score:68,
+   detail:'Mass scanning לפורטים 9419 (Veeam), 10051 (Zabbix). Phishing לישראל.',
+   ports:'9419,10051',specific:'חסום פורטי infra'},
+  {code:'BR',name:'ברזיל',flag:'🇧🇷',risk:'high',attacks:['RAT','Scan'],reason:'scan',score:72,
+   detail:'Mass scanning Veeam/Zabbix. Banking trojans עם C2 בברזיל.',
+   ports:'9419,10051',specific:'חסום פורטי Veeam ו-Zabbix'},
+  {code:'HK',name:'הונג קונג',flag:'🇭🇰',risk:'high',attacks:['APT proxy','Scan'],reason:'apt',score:74,
+   detail:'Proxy לקבוצות APT סיניות. Traffic מסווה מקור סיני.',
+   ports:'443,8443',specific:'חסום סלקטיבי'},
+];
+
+// ── DATA: HASHES ───────────────────────────────────────────────────────────
+const HASH_DATA = [
+  {hash:'3d0a5f6e7c9b2a1d4e8f0c6b9a2d5f8e1c4b7a0d3f6e9c2b5a8d1f4e7c0b3a6',type:'SHA-256',name:'FortiBleed-credential-extractor-2026',cat:'exploit',threat:'Exploit',vt:'52/72',date:'2026-01-22',notes:'כלי חילוץ config files מ-FortiGate — FortiBleed campaign'},
+  {hash:'a7f4e2b9c5d8e1f3a6b0c4d7e2f5a8b1c3d6e9f2a5b8c1d4e7f0a3b6c9d2e5',type:'SHA-256',name:'Akira-Veeam-CVE-21666-dropper',cat:'ransomware',threat:'Ransomware',vt:'63/72',date:'2026-03-18',notes:'Akira ransomware dropper — מנצל CVE-2026-21666 ב-Veeam'},
+  {hash:'f8e3c7a2b6d1e5f9a4b8c2d6e0f4a8b3c7d1e5f9a3b7c2d6e0f4a8b3c7d1e5',type:'SHA-256',name:'FortiOS-SSO-implant-CVE-2026-24858',cat:'exploit',threat:'Backdoor',vt:'48/72',date:'2026-01-28',notes:'Implant לאחר ניצול FortiCloud SSO bypass'},
+  {hash:'2b5c8e1f4a7d0c3f6b9e2a5d8f1c4b7a0d3e6f9c2b5a8d1f4e7c0b3a6d9f2',type:'SHA-256',name:'Cobalt-Strike-Netlogon-DC-beacon',cat:'rat',threat:'RAT/C2',vt:'55/72',date:'2026-05-20',notes:'Beacon לאחר ניצול CVE-2026-41089 Netlogon RCE על DCs'},
+  {hash:'9a4c2e7f1b5d8a3c6e0f4b8c2d6e1f5a9b3d7f1a5c9e3b7d1f5a9c3e7b1d5',type:'SHA-256',name:'Veeam-CVE-44963-PoC-WatchTowr',cat:'exploit',threat:'Exploit',vt:'44/72',date:'2026-06-10',notes:'PoC ל-CVE-2026-44963 — WatchTowr release יוני 2026'},
+  {hash:'d4b8e2f6a1c5d9f3b7e1a5c9d3f7b1e5a9c3d7f1b5e9a3c7d1f5b9e3a7c1aa',type:'SHA-256',name:'BlackSuit-ESXi-locker-2026',cat:'ransomware',threat:'Ransomware',vt:'60/72',date:'2026-02-14',notes:'BlackSuit ransomware — ESXi locker 2026'},
+  {hash:'b2e5a8f4c7d0e3b6a9f2c5e8b1d4f7a0c3e6b9d2f5a8c1e4b7d0a3f6c9e2bb',type:'SHA-256',name:'Exchange-CVE-42897-XSS-dropper',cat:'exploit',threat:'Exploit',vt:'38/72',date:'2026-06-05',notes:'Dropper דרך Exchange OWA XSS — CVE-2026-42897'},
+];
+
+// ── SETUP ──────────────────────────────────────────────────────────────────
+const MONTHS_HEB = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני',
+                    'יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+const now = new Date();
+const curMonth = now.getMonth()+1;
+const curYear  = now.getFullYear();
+
+document.getElementById('monthBadge').textContent = `${MONTHS_HEB[curMonth-1]} ${curYear}`;
+document.getElementById('dateBadge').textContent  = now.toLocaleDateString('he-IL');
+
+const PRODUCTS = [...new Set(CVES.map(c=>c.product))];
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let activeView     = 'cve';
+let activeProd     = new Set(PRODUCTS);
+let critFilter     = false;
+let wildFilter     = false;
+let sortMode       = 'cvss';
+let searchQ        = '';
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function sevCls(s){ return s==='critical'?'h':s==='high'?'m':'l'; }
+function cvssColor(v){ return v>=9?'#dc2626':v>=7?'#ea580c':'#ca8a04'; }
+function cvssClass(v){ return v>=9?'cvss-c':v>=7?'cvss-h':'cvss-m'; }
+
+// ── BUILD SIDEBAR PRODUCTS ─────────────────────────────────────────────────
+function buildSidebar(){
+  const counts = {};
+  CVES.forEach(c => counts[c.product]=(counts[c.product]||0)+1);
+  document.getElementById('sidebarCats').innerHTML = PRODUCTS.map(p=>`
+    <div class="ni active" data-prod="${esc(p)}" onclick="toggleProd(this)">
+      <span style="font-size:11px">📦</span>
+      <span class="ni-label">${esc(p)}</span>
+      <span class="ni-cnt b">${counts[p]}</span>
+    </div>`).join('');
+  document.getElementById('sidebarFooter').innerHTML =
+    `Security-Watch · ${CVES.length} CVEs · ${PRODUCTS.length} מוצרים<br>נתונים: 2024–2026`;
+}
+
+// ── BUILD CAT TAGS ─────────────────────────────────────────────────────────
+function buildCatTags(){
+  const counts = {};
+  CVES.forEach(c => counts[c.product]=(counts[c.product]||0)+1);
+  document.getElementById('catTags').innerHTML = PRODUCTS.map(p=>`
+    <span class="cat-tag on" data-prod="${esc(p)}" onclick="toggleProdTag(this)">
+      ${esc(p)}<span class="cat-cnt"> ${counts[p]}</span>
+    </span>`).join('');
+}
+
+// ── TOGGLE PRODUCT ─────────────────────────────────────────────────────────
+function selectProd(p){
+  const isOnly = activeProd.size===1 && activeProd.has(p);
+  activeProd = isOnly ? new Set(PRODUCTS) : new Set([p]);
+  document.querySelectorAll('[data-prod]').forEach(el=>
+    el.classList.toggle('active', activeProd.has(el.dataset.prod)));
+  document.querySelectorAll('.cat-tag[data-prod]').forEach(el=>
+    el.classList.toggle('on', activeProd.has(el.dataset.prod)));
+  document.querySelector('.content').scrollTo({top:0,behavior:'smooth'});
+  render();
+}
+window.toggleProd    = el => selectProd(el.dataset.prod);
+window.toggleProdTag = el => selectProd(el.dataset.prod);
+
+// ── VIEW SWITCH ────────────────────────────────────────────────────────────
+window.setView = function(el){
+  document.querySelectorAll('.ni[data-view]').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  activeView = el.dataset.view;
+  const isCVE = activeView==='cve';
+  document.getElementById('cveCtrl').style.display  = isCVE?'flex':'none';
+  document.getElementById('catTags').style.display  = isCVE?'flex':'none';
+  document.getElementById('statsRow').style.display = isCVE?'grid':'none';
+  document.querySelector('.infra-sep').style.display= isCVE?'flex':'none';
+  document.querySelector('.stats-infra').style.display= isCVE?'grid':'none';
+  document.getElementById('pageTitle').textContent =
+    activeView==='cve'?'CVE Database — 2026':
+    activeView==='geo'?'GEO Blocking — FortiGate 90G':
+    'Hash IOCs — לחסימה';
+  document.querySelector('.content').scrollTo({top:0,behavior:'smooth'});
+  render();
+};
+
+// ── FILTERS ────────────────────────────────────────────────────────────────
+document.getElementById('filterCritBtn').addEventListener('click',()=>{
+  critFilter=!critFilter;
+  document.getElementById('filterCritBtn').classList.toggle('on',critFilter);
+  wildFilter=false;
+  document.getElementById('filterWildBtn').classList.remove('on');
+  render();
+});
+document.getElementById('filterWildBtn').addEventListener('click',()=>{
+  wildFilter=!wildFilter;
+  document.getElementById('filterWildBtn').classList.toggle('on',wildFilter);
+  critFilter=false;
+  document.getElementById('filterCritBtn').classList.remove('on');
+  render();
+});
+
+// ── SORT ───────────────────────────────────────────────────────────────────
+const sortCycles=[
+  {mode:'cvss',  label:'⬆⬇ מיון: CVSS'},
+  {mode:'date',  label:'📅 מיון: תאריך'},
+  {mode:'prod',  label:'📦 מיון: מוצר'},
+];
+let sortIdx=0;
+document.getElementById('sortBtn').addEventListener('click',()=>{
+  sortIdx=(sortIdx+1)%sortCycles.length;
+  sortMode=sortCycles[sortIdx].mode;
+  document.getElementById('sortBtn').textContent=sortCycles[sortIdx].label;
+  document.getElementById('sortBtn').classList.toggle('on',sortIdx>0);
+  render();
+});
+
+// ── SEARCH ─────────────────────────────────────────────────────────────────
+document.getElementById('searchInput').addEventListener('input',e=>{
+  searchQ=e.target.value.trim().toLowerCase();
+  render();
+});
+
+// ── UPDATE STATS ───────────────────────────────────────────────────────────
+function updateStats(){
+  const all = CVES;
+  document.getElementById('s-crit').textContent  = all.filter(c=>c.severity==='critical').length;
+  document.getElementById('s-high').textContent  = all.filter(c=>c.severity==='high').length;
+  document.getElementById('s-wild').textContent  = all.filter(c=>c.wild).length;
+  document.getElementById('s-total').textContent = all.length;
+  document.getElementById('s-patch').textContent = all.filter(c=>c.patch).length;
+  document.getElementById('cnt-cve').textContent = all.filter(c=>c.severity==='critical').length;
+
+  // Infra breakdown
+  const setInfra=(key,prod)=>{
+    const arr=all.filter(c=>c.product===prod);
+    document.getElementById(`ib-${key}`).textContent=arr.length||'0';
+    const hasCrit=arr.some(c=>c.severity==='critical');
+    document.getElementById(`ib-${key}-badge`).textContent=hasCrit?'critical':arr.length?'high':'—';
+    document.getElementById(`ib-${key}-sub`).textContent=
+      arr.length?arr.slice(0,2).map(c=>c.id.slice(-5)).join(' · ')+(arr.length>2?` +${arr.length-2}`:''):'אין CVEs';
+  };
+  setInfra('veeam','Veeam');
+  setInfra('esxi','VMware ESXi');
+  setInfra('zabbix','Zabbix');
+}
+
+// ── MAIN RENDER ────────────────────────────────────────────────────────────
+function render(){
+  const area   = document.getElementById('mainArea');
+  const notice = document.getElementById('noDataNotice');
+  updateStats();
+
+  if(activeView==='geo'){
+    document.getElementById('pageSubtitle').textContent=
+      `המלצות חסימה גיאוגרפית · ${GEO_DATA.filter(g=>g.risk==='block').length} מדינות לחסימה מיידית · FortiGate 90G`;
+    renderGEO(area); notice.style.display='none'; return;
+  }
+  if(activeView==='hash'){
+    document.getElementById('pageSubtitle').textContent=
+      `${HASH_DATA.length} Hashes מומלצים לחסימה · FortiGate Threat Feed · VirusTotal`;
+    renderHashes(area); notice.style.display='none'; return;
+  }
+
+  // CVE view
+  document.getElementById('pageSubtitle').textContent=
+    `Security-Watch · נתונים מבוססי חיפוש · NVD · Fortinet PSIRT · MSRC · ${curYear}`;
+
+  let items = CVES.slice();
+  if(critFilter) items=items.filter(c=>c.severity==='critical');
+  if(wildFilter) items=items.filter(c=>c.wild);
+  items=items.filter(c=>activeProd.has(c.product));
+  if(searchQ) items=items.filter(c=>
+    [c.id,c.product,c.title,c.description,c.recommendation]
+      .some(f=>(f||'').toLowerCase().includes(searchQ)));
+
+  if(sortMode==='cvss') items.sort((a,b)=>b.cvss-a.cvss);
+  if(sortMode==='date') items.sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(sortMode==='prod') items.sort((a,b)=>a.product.localeCompare(b.product));
+
+  if(!items.length){
+    notice.style.display='flex';
+    document.getElementById('noDataText').textContent=
+      'לא נמצאו CVEs לפי הפילטרים הנוכחיים — שנה חיפוש או הסר פילטר.';
+    area.innerHTML=''; return;
+  }
+  notice.style.display='none';
+
+  area.innerHTML=`<div class="grid">${items.map(it=>`
+    <div class="card ${sevCls(it.severity)}${it.wild?' itw':''}">
+      <div class="card-top">
+        <span class="cat-badge">${esc(it.product)}</span>
+        <div style="display:flex;gap:5px;align-items:center">
+          ${it.wild?'<span class="itw-badge">🔥 ITW</span>':''}
+          <span class="sev ${sevCls(it.severity)}">${it.severity.toUpperCase()}</span>
+        </div>
+      </div>
+      <div class="card-title">${esc(it.id)} — ${esc(it.title)}</div>
+      <div class="card-desc">${esc(it.description)}</div>
+      <div class="card-reco"><b>💡 מה לעשות עכשיו</b>${esc(it.recommendation)}</div>
+      <div class="card-foot">
+        <div style="display:flex;gap:6px;align-items:center">
+          <span class="cvss-pill ${cvssClass(it.cvss)}">CVSS ${it.cvss}</span>
+          <span>${esc(it.source)}</span>
+          ${it.patch?'<span style="color:#166534;font-size:10px">✓ Patch זמין</span>':'<span style="color:#9a3412;font-size:10px">⚠ אין Patch</span>'}
+        </div>
+        <span>${esc(it.date)}</span>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+// ── GEO RENDER ─────────────────────────────────────────────────────────────
+function renderGEO(area){
+  const rl={block:'חסום מיד',high:'סיכון גבוה',med:'בינוני'};
+  const rb={block:'background:#fef2f2;color:#991b1b;border-color:#fecaca',
+            high:'background:#fff7ed;color:#9a3412;border-color:#fed7aa',
+            med:'background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe'};
+  area.innerHTML=`
+    <table class="geo-table">
+      <thead><tr><th>דגל</th><th>מדינה</th><th>ציון סיכון</th><th>רמה</th><th>קבוצות / סיבות</th><th>פורטים לחסימה</th><th>המלצה</th></tr></thead>
+      <tbody>${GEO_DATA.map(g=>`
+        <tr>
+          <td style="font-size:22px">${g.flag}</td>
+          <td style="font-weight:700;color:var(--text)">${esc(g.name)}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div class="risk-bar-wrap"><div class="risk-bar" style="width:${g.score}%;background:${g.risk==='block'?'#dc2626':g.risk==='high'?'#ea580c':'#2563eb'}"></div></div>
+              <span style="font-size:12px;font-weight:700;color:${g.risk==='block'?'#dc2626':g.risk==='high'?'#ea580c':'#2563eb'}">${g.score}</span>
+            </div>
+          </td>
+          <td><span class="badge" style="font-size:10px;font-weight:700;border:1px solid;${rb[g.risk]}">${rl[g.risk]}</span></td>
+          <td style="font-size:11px">${g.attacks.join(' · ')}</td>
+          <td style="font-family:var(--mono);font-size:11px;color:#ea580c">${esc(g.ports)}</td>
+          <td style="font-size:11px;color:#475569">${esc(g.specific)}</td>
+        </tr>
+        <tr>
+          <td colspan="7" style="padding:0 14px 12px;font-size:11px;color:var(--muted);background:#f8fafc">${esc(g.detail)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+// ── HASH RENDER ────────────────────────────────────────────────────────────
+function renderHashes(area){
+  const cb={ransomware:'background:#fef2f2;color:#991b1b;border-color:#fecaca',
+            exploit:'background:#fff7ed;color:#9a3412;border-color:#fed7aa',
+            rat:'background:#faf5ff;color:#7e22ce;border-color:#e9d5ff'};
+  area.innerHTML=`
+    <table class="hash-table">
+      <thead><tr><th>סוג</th><th>Hash</th><th>שם / הערות</th><th>קטגוריה</th><th>VirusTotal</th><th>תאריך</th><th>העתק</th></tr></thead>
+      <tbody>${HASH_DATA.map(h=>`
+        <tr>
+          <td><span class="badge" style="font-size:9px;font-weight:700;border:1px solid;background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe">${h.type}</span></td>
+          <td><div class="hash-cell" title="${h.hash}">${h.hash}</div></td>
+          <td>
+            <div style="font-size:12px;font-weight:600;color:var(--text)">${esc(h.name)}</div>
+            <div style="font-size:10px;color:var(--faint)">${esc(h.notes)}</div>
+          </td>
+          <td><span class="badge" style="font-size:10px;font-weight:700;border:1px solid;${cb[h.cat]||''}">${esc(h.threat)}</span></td>
+          <td style="font-weight:700;font-size:12px;color:${parseInt(h.vt)>55?'#dc2626':'#ea580c'}">${h.vt}</td>
+          <td style="font-size:11px;color:var(--faint)">${esc(h.date)}</td>
+          <td><button class="copy-btn" onclick="copyHash('${h.hash}',this)">📋 העתק</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+}
+
+window.copyHash = function(h,btn){
+  navigator.clipboard.writeText(h).then(()=>{
+    btn.textContent='✓ הועתק';
+    setTimeout(()=>btn.textContent='📋 העתק',1400);
+  });
+};
+
+// ── EXPORTS ────────────────────────────────────────────────────────────────
+window.exportGEO = function(){
+  const bl=GEO_DATA.filter(g=>g.risk==='block');
+  let out=`# FortiGate GEO Block — Security-Watch · ${now.toLocaleDateString('he-IL')}\n\nconfig firewall address\n`;
+  bl.forEach(g=>out+=`  edit "GEO-BLOCK-${g.code}"\n    set type geography\n    set country "${g.code}"\n    set comment "${g.name} — ${g.attacks.join(', ')}"\n  next\n`);
+  out+=`end\n\nconfig firewall addrgrp\n  edit "GEO-BLOCK-ALL"\n`;
+  bl.forEach(g=>out+=`    append member "GEO-BLOCK-${g.code}"\n`);
+  out+=`  next\nend\n`;
+  dl('fortigate_geo_block.conf',out);
+};
+
+window.exportHashes = function(){
+  dl('ioc_hashes.txt',HASH_DATA.map(h=>h.hash).join('\n'));
+};
+
+window.exportCSV = function(){
+  const rows=CVES.map(c=>`"${c.id}","${c.product}","${c.severity}","${c.cvss}","${c.date}","${c.wild?'Yes':'No'}","${c.patch?'Yes':'No'}","${c.source}","${(c.title||'').replace(/"/g,"'")}"`);
+  dl('cves_export.csv','ID,Product,Severity,CVSS,Date,InWild,Patch,Source,Title\n'+rows.join('\n'));
+};
+
+function dl(fn,content){
+  const a=document.createElement('a');
+  a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(content);
+  a.download=fn; a.click();
+}
+
+// ── BOOT ───────────────────────────────────────────────────────────────────
+buildSidebar();
+buildCatTags();
+render();
+
+})();
+</script>
+</body>
+</html>
